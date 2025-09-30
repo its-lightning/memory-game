@@ -1,32 +1,134 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Memory — Create / Join</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memory Game - Multiplayer</title>
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-  <main class="center">
-    <h1>Memory — Multiplayer</h1>
+  <div class="particles"></div>
+  
+  <main class="container">
+    <div class="hero">
+      <div class="logo">🧠</div>
+      <h1 class="title">Memory Match</h1>
+      <p class="subtitle">Challenge your friends in this multiplayer card matching game</p>
+    </div>
 
-    <section class="card">
-      <h2>Create Room</h2>
-      <form id="createForm" action="/create" method="post">
-        <input name="name" placeholder="Your name (Host)" />
-        <button type="submit">Create Room</button>
-      </form>
-    </section>
+    <div class="cards-container">
+      <div class="game-card">
+        <div class="card-icon">🎮</div>
+        <h2>Create Room</h2>
+        <p class="card-description">Start a new game and invite your friends</p>
+        <form action="/create" method="post" class="game-form">
+          <div class="input-group">
+            <label for="hostName">Your Name</label>
+            <input 
+              type="text" 
+              id="hostName" 
+              name="name" 
+              placeholder="Enter your name" 
+              required 
+              maxlength="20"
+              autocomplete="off"
+            />
+          </div>
+          <button type="submit" class="btn btn-primary">
+            <span>Create Game</span>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M4 10h12m-6-6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </form>
+      </div>
 
-    <section class="card">
-      <h2>Join Room</h2>
-      <form id="joinForm" action="/join" method="post">
-        <input name="name" placeholder="Your name" />
-        <input name="room" placeholder="Room code (e.g. ABC123)" />
-        <button type="submit">Join</button>
-      </form>
-    </section>
+      <div class="divider">
+        <span>OR</span>
+      </div>
 
-    <p class="muted">This demo uses WebSockets for real-time play (Flask-SocketIO).</p>
+      <div class="game-card">
+        <div class="card-icon">🚀</div>
+        <h2>Join Room</h2>
+        <p class="card-description">Enter a room code to join an existing game</p>
+        <form action="/join" method="post" class="game-form">
+          <div class="input-group">
+            <label for="playerName">Your Name</label>
+            <input 
+              type="text" 
+              id="playerName" 
+              name="name" 
+              placeholder="Enter your name" 
+              required 
+              maxlength="20"
+              autocomplete="off"
+            />
+          </div>
+          <div class="input-group">
+            <label for="roomCode">Room Code</label>
+            <input 
+              type="text" 
+              id="roomCode" 
+              name="room" 
+              placeholder="e.g. ABC123" 
+              required 
+              maxlength="6"
+              style="text-transform: uppercase;"
+              autocomplete="off"
+            />
+          </div>
+          <button type="submit" class="btn btn-secondary">
+            <span>Join Game</span>
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+              <path d="M4 10h12m-6-6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">🎯</div>
+        <h3>Test Your Memory</h3>
+        <p>Match pairs of cards to score points</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">👥</div>
+        <h3>Multiplayer Fun</h3>
+        <p>Play with friends in real-time</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">⚡</div>
+        <h3>Fast & Smooth</h3>
+        <p>Instant synchronization with WebSockets</p>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>Built with Flask + Socket.IO</p>
+    </footer>
   </main>
+
+  <script>
+    // Auto-uppercase room code input
+    document.getElementById('roomCode').addEventListener('input', function(e) {
+      e.target.value = e.target.value.toUpperCase();
+    });
+
+    // Add floating animation to particles
+    const createParticle = () => {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.animationDuration = (Math.random() * 3 + 2) + 's';
+      particle.style.opacity = Math.random() * 0.5 + 0.2;
+      document.querySelector('.particles').appendChild(particle);
+      
+      setTimeout(() => particle.remove(), 5000);
+    };
+
+    setInterval(createParticle, 300);
+  </script>
 </body>
 </html>

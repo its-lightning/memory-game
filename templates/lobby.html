@@ -1,25 +1,83 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Lobby — Room {{ room }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lobby - {{ room }}</title>
   <link rel="stylesheet" href="/static/style.css" />
   <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 </head>
 <body>
-  <main class="center">
-    <h1>Lobby — Room <span id="roomCode">{{ room }}</span></h1>
-    <div class="card">
-      <p>Your name: <strong id="myname">{{ name }}</strong></p>
-      <p>Players:</p>
-      <ul id="playerList"></ul>
+  <div class="particles"></div>
+  
+  <main class="container">
+    <div class="lobby-header">
+      <h1 class="title">Game Lobby</h1>
+      <div class="room-code-display">
+        <span class="room-label">Room Code</span>
+        <span class="room-code" id="roomCode">{{ room }}</span>
+        <button class="copy-btn" id="copyBtn" title="Copy room code">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
 
-      <div id="hostControls" style="display:none;">
-        <button id="startBtn">Start Game</button>
+    <div class="lobby-content">
+      <div class="players-section game-card">
+        <div class="section-header">
+          <h2>Players</h2>
+          <span class="player-count" id="playerCount">0</span>
+        </div>
+        <div class="players-grid" id="playerList">
+          <div class="player-slot empty">
+            <div class="player-avatar">?</div>
+            <span>Waiting...</span>
+          </div>
+        </div>
       </div>
 
-      <div>
-        <button id="backBtn">Leave</button>
+      <div class="lobby-actions">
+        <div id="hostControls" style="display:none;">
+          <button id="startBtn" class="btn btn-primary btn-large pulse">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            <span>Start Game</span>
+          </button>
+          <p class="host-message">You're the host! Start when everyone is ready.</p>
+        </div>
+
+        <div id="waitingMessage" style="display:none;">
+          <div class="waiting-indicator">
+            <div class="spinner"></div>
+            <p>Waiting for host to start the game...</p>
+          </div>
+        </div>
+
+        <button id="backBtn" class="btn btn-ghost">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          <span>Leave Lobby</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="lobby-info">
+      <div class="info-card">
+        <span class="info-icon">🎯</span>
+        <p>Match pairs of cards to earn points</p>
+      </div>
+      <div class="info-card">
+        <span class="info-icon">🔄</span>
+        <p>Players take turns flipping cards</p>
+      </div>
+      <div class="info-card">
+        <span class="info-icon">🏆</span>
+        <p>Most matches wins the game!</p>
       </div>
     </div>
   </main>
@@ -30,46 +88,74 @@
     const socket = io();
 
     socket.on('connect', () => {
-      socket.emit('join_room', { room: room, name: myname });
+        console.log('Connected to server');
+        socket.emit('join_room', { room: room, name: myname });
     });
 
     socket.on('join_failed', (data) => {
-      alert('Join failed: ' + data.reason);
-      window.location = '/';
+        alert('Failed to join room: ' + data.reason);
+        window.location = '/';
     });
 
     socket.on('join_ok', (data) => {
-      // stay in lobby
+        console.log('Successfully joined room');
     });
 
     socket.on('lobby_update', (data) => {
-      const list = document.getElementById('playerList');
-      list.innerHTML = '';
-      data.players.forEach(p => {
-        const li = document.createElement('li');
-        li.textContent = p.name;
-        list.appendChild(li);
-      });
-      const host = data.host;
-      if (host === myname) {
-        document.getElementById('hostControls').style.display = 'block';
-      } else {
-        document.getElementById('hostControls').style.display = 'none';
-      }
-      if (data.started) {
-        // redirect to game
-        window.location = '/game/' + room + '?name=' + encodeURIComponent(myname);
-      }
+        console.log('Lobby update:', data);
+        
+        const list = document.getElementById('playerList');
+        const count = document.getElementById('playerCount');
+        
+        list.innerHTML = '';
+        count.textContent = data.players.length;
+        
+        if (data.players && data.players.length > 0) {
+            data.players.forEach((p, index) => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'player-slot';
+                
+                const isHost = p.name === data.host;
+                const avatarEmoji = ['🎮', '🎯', '🎨', '🎪', '🎭', '🎸', '🏀', '⚽'][index % 8];
+                
+                playerDiv.innerHTML = `
+                    <div class="player-avatar ${isHost ? 'host' : ''}">${avatarEmoji}</div>
+                    <div class="player-info">
+                        <span class="player-name">${p.name}</span>
+                        ${isHost ? '<span class="host-badge">HOST</span>' : ''}
+                    </div>
+                `;
+                
+                list.appendChild(playerDiv);
+            });
+            
+            // Fill empty slots
+            for (let i = data.players.length; i < 4; i++) {
+                const emptySlot = document.createElement('div');
+                emptySlot.className = 'player-slot empty';
+                emptySlot.innerHTML = `
+                    <div class="player-avatar">?</div>
+                    <span>Waiting...</span>
+                `;
+                list.appendChild(emptySlot);
+            }
+        }
+
+        if (data.host === myname) {
+            document.getElementById('hostControls').style.display = 'block';
+            document.getElementById('waitingMessage').style.display = 'none';
+        } else {
+            document.getElementById('hostControls').style.display = 'none';
+            document.getElementById('waitingMessage').style.display = 'block';
+        }
+
+        if (data.started) {
+            window.location = '/game/' + room + '?name=' + encodeURIComponent(myname);
+        }
     });
 
     document.getElementById('startBtn').addEventListener('click', () => {
-      socket.emit('start_game', { room: room });
+        socket.emit('start_game', { room: room });
     });
 
-    document.getElementById('backBtn').addEventListener('click', () => {
-      socket.emit('leave_room', { room: room });
-      window.location = '/';
-    });
-  </script>
-</body>
-</html>
+    document.getElementById('backBtn').addEventListen

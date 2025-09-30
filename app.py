@@ -1,4 +1,3 @@
-# app.py
 from flask import Flask, render_template, request, redirect, url_for
 from flask_socketio import SocketIO, join_room, leave_room, emit
 import secrets
@@ -20,8 +19,9 @@ def generate_room_code(length: int = 6) -> str:
     return "".join(secrets.choice(alphabet) for _ in range(length))
 
 def generate_cards(pair_count: int = 8) -> List[str]:
-    # Generate pair_count distinct values (A, B, C...) and duplicate them
-    base = [chr(ord("A") + i) for i in range(pair_count)]
+    # Use emojis for more visual appeal
+    emojis = ['🎮', '🎯', '🎲', '🎪', '🎨', '🎭', '🎸', '🎹', '🎺', '🎻', '🏀', '⚽', '🏈', '⚾', '🎾', '🏐']
+    base = emojis[:pair_count]
     cards = base + base[:]
     random.shuffle(cards)
     return cards
@@ -267,7 +267,7 @@ def on_flip_card(data):
             # not a match -> notify, then pause briefly and advance turn
             emit("match_result", {"match": False, "indices": [i1, i2], "player": player_index}, room=room)
             # server-side sleep: safe with eventlet; short-block when threading (acceptable for dev)
-            socketio.sleep(1.0)
+            socketio.sleep(1.5)
             state.temp_flips = []
             state.current_turn = (state.current_turn + 1) % max(1, len(state.players))
             emit_board_state(room)
@@ -348,4 +348,4 @@ def on_disconnect():
 
 if __name__ == "__main__":
     print(f"Starting server with async_mode='{async_mode_choice}'")
-    socketio.run(app, host="0.0.0.0", port=5000)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
