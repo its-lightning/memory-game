@@ -1,0 +1,75 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Lobby — Room {{ room }}</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+</head>
+<body>
+  <main class="center">
+    <h1>Lobby — Room <span id="roomCode">{{ room }}</span></h1>
+    <div class="card">
+      <p>Your name: <strong id="myname">{{ name }}</strong></p>
+      <p>Players:</p>
+      <ul id="playerList"></ul>
+
+      <div id="hostControls" style="display:none;">
+        <button id="startBtn">Start Game</button>
+      </div>
+
+      <div>
+        <button id="backBtn">Leave</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const room = "{{ room }}";
+    const myname = "{{ name }}";
+    const socket = io();
+
+    socket.on('connect', () => {
+      socket.emit('join_room', { room: room, name: myname });
+    });
+
+    socket.on('join_failed', (data) => {
+      alert('Join failed: ' + data.reason);
+      window.location = '/';
+    });
+
+    socket.on('join_ok', (data) => {
+      // stay in lobby
+    });
+
+    socket.on('lobby_update', (data) => {
+      const list = document.getElementById('playerList');
+      list.innerHTML = '';
+      data.players.forEach(p => {
+        const li = document.createElement('li');
+        li.textContent = p.name;
+        list.appendChild(li);
+      });
+      const host = data.host;
+      if (host === myname) {
+        document.getElementById('hostControls').style.display = 'block';
+      } else {
+        document.getElementById('hostControls').style.display = 'none';
+      }
+      if (data.started) {
+        // redirect to game
+        window.location = '/game/' + room + '?name=' + encodeURIComponent(myname);
+      }
+    });
+
+    document.getElementById('startBtn').addEventListener('click', () => {
+      socket.emit('start_game', { room: room });
+    });
+
+    document.getElementById('backBtn').addEventListener('click', () => {
+      socket.emit('leave_room', { room: room });
+      window.location = '/';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Memory — Create / Join</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <main class="center">
+    <h1>Memory — Multiplayer</h1>
+
+    <section class="card">
+      <h2>Create Room</h2>
+      <form id="createForm" action="/create" method="post">
+        <input name="name" placeholder="Your name (Host)" />
+        <button type="submit">Create Room</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Join Room</h2>
+      <form id="joinForm" action="/join" method="post">
+        <input name="name" placeholder="Your name" />
+        <input name="room" placeholder="Room code (e.g. ABC123)" />
+        <button type="submit">Join</button>
+      </form>
+    </section>
+
+    <p class="muted">This demo uses WebSockets for real-time play (Flask-SocketIO).</p>
+  </main>
+</body>
+</html>
